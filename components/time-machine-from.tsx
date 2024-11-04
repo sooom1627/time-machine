@@ -15,9 +15,10 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { YearPickerComponent } from "./year-picker";
 
 const formSchema = z.object({
-	date: z.string().min(2).max(50),
+	date: z.date(),
 	latitude: z.number(),
 	longitude: z.number(),
 });
@@ -26,7 +27,7 @@ export default function TimeMachineForm() {
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			date: "",
+			date: new Date(),
 			latitude: 0,
 			longitude: 0,
 		},
@@ -39,7 +40,10 @@ export default function TimeMachineForm() {
 	}
 	return (
 		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+			<form
+				onSubmit={form.handleSubmit(onSubmit)}
+				className="flex flex-col gap-10"
+			>
 				<FormField
 					control={form.control}
 					name="date"
@@ -47,7 +51,7 @@ export default function TimeMachineForm() {
 						<FormItem>
 							<FormLabel>Year you want to travel to</FormLabel>
 							<FormControl>
-								<Input placeholder="1999" {...field} />
+								<YearPickerComponent onChange={field.onChange} />
 							</FormControl>
 							<FormDescription>
 								This is year you are traveling to.
@@ -56,7 +60,7 @@ export default function TimeMachineForm() {
 						</FormItem>
 					)}
 				/>
-				<div className="flex gap-4">
+				<div className="flex gap-4 min-w-full">
 					<FormField
 						control={form.control}
 						name="latitude"
@@ -64,7 +68,11 @@ export default function TimeMachineForm() {
 							<FormItem>
 								<FormLabel>Latitude</FormLabel>
 								<FormControl>
-									<Input placeholder="40.7128" {...field} />
+									<Input
+										placeholder="40.7128"
+										{...field}
+										onChange={(e) => field.onChange(Number(e.target.value))}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -77,7 +85,11 @@ export default function TimeMachineForm() {
 							<FormItem>
 								<FormLabel>Longitude</FormLabel>
 								<FormControl>
-									<Input placeholder="-74.0060" {...field} />
+									<Input
+										placeholder="-74.0060"
+										{...field}
+										onChange={(e) => field.onChange(Number(e.target.value))}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
