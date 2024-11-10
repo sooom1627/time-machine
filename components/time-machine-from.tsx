@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { YearPickerComponent } from "./year-picker";
+import { useEffect } from "react";
 
 const formSchema = z.object({
 	date: z.date(),
@@ -38,6 +39,18 @@ export default function TimeMachineForm() {
 		// ✅ This will be type-safe and validated.
 		console.log(values);
 	}
+
+	useEffect(() => {
+		if ("geolocation" in navigator) {
+			navigator.geolocation.getCurrentPosition((position) => {
+				form.setValue("latitude", position.coords.latitude);
+				form.setValue("longitude", position.coords.longitude);
+			});
+		} else {
+			console.log("Geolocation is not available");
+		}
+	}, []);
+
 	return (
 		<Form {...form}>
 			<form
