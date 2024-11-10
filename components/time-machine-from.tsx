@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { YearPickerComponent } from "./year-picker";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { getHistoricalData } from "@/server/actions";
 
 const formSchema = z.object({
 	date: z.date(),
@@ -25,6 +26,9 @@ const formSchema = z.object({
 });
 
 export default function TimeMachineForm() {
+	const [aiResponse, setAiResponse] = useState("");
+	const [loading, setLoading] = useState(false);
+
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
@@ -34,10 +38,17 @@ export default function TimeMachineForm() {
 		},
 	});
 
-	function onSubmit(values: z.infer<typeof formSchema>) {
+	async function onSubmit(values: z.infer<typeof formSchema>) {
 		// Do something with the form values.
 		// ✅ This will be type-safe and validated.
-		console.log(values);
+		setLoading(true);
+		const result = await getHistoricalData(
+			values.date,
+			values.latitude,
+			values.longitude
+		);
+		setAiResponse(result);
+		setLoading(false);
 	}
 
 	useEffect(() => {
@@ -52,65 +63,70 @@ export default function TimeMachineForm() {
 	}, []);
 
 	return (
-		<Form {...form}>
-			<form
-				onSubmit={form.handleSubmit(onSubmit)}
-				className="flex flex-col gap-10"
-			>
-				<FormField
-					control={form.control}
-					name="date"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Year you want to travel to</FormLabel>
-							<FormControl>
-								<YearPickerComponent onChange={field.onChange} />
-							</FormControl>
-							<FormDescription>
-								This is year you are traveling to.
-							</FormDescription>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<div className="flex gap-4 min-w-full">
+		<>
+			<Form {...form}>
+				<form
+					onSubmit={form.handleSubmit(onSubmit)}
+					className="flex flex-col gap-10"
+				>
 					<FormField
 						control={form.control}
-						name="latitude"
+						name="date"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Latitude</FormLabel>
+								<FormLabel>Year you want to travel to</FormLabel>
 								<FormControl>
-									<Input
-										placeholder="40.7128"
-										{...field}
-										onChange={(e) => field.onChange(Number(e.target.value))}
-									/>
+									<YearPickerComponent onChange={field.onChange} />
 								</FormControl>
+								<FormDescription>
+									This is year you are traveling to.
+								</FormDescription>
 								<FormMessage />
 							</FormItem>
 						)}
 					/>
-					<FormField
-						control={form.control}
-						name="longitude"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Longitude</FormLabel>
-								<FormControl>
-									<Input
-										placeholder="-74.0060"
-										{...field}
-										onChange={(e) => field.onChange(Number(e.target.value))}
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-				</div>
-				<Button type="submit">Submit</Button>
-			</form>
-		</Form>
+					<div className="flex gap-4 min-w-full">
+						<FormField
+							control={form.control}
+							name="latitude"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Latitude</FormLabel>
+									<FormControl>
+										<Input
+											placeholder="40.7128"
+											{...field}
+											onChange={(e) => field.onChange(Number(e.target.value))}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="longitude"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Longitude</FormLabel>
+									<FormControl>
+										<Input
+											placeholder="-74.0060"
+											{...field}
+											onChange={(e) => field.onChange(Number(e.target.value))}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
+					<Button type="submit" disabled={loading}>
+						{loading ? "Loading..." : "Submit"}
+					</Button>
+				</form>
+			</Form>
+			<p>{aiResponse}</p>
+		</>
 	);
 }
